@@ -1,31 +1,39 @@
-# Tournament Arena — Firebase/Vercel
+# Tournament Arena — Firebase/Vercel Admin-Ready (Points Version)
 
-This package is a tournament-oriented starter with Firebase Authentication + Firestore.
+This package is a safe, non-cash tournament/game starter.
 
 ## Included
-- Signup/Login
-- Tournament tiers ৳20 / ৳50 / ৳100
-- Waiting queue and automatic 2-player match creation
-- 30-second tap skill game
-- Live opponent score updates
-- Result screen
-- Wallet balance field
-- Deposit request workflow (admin approval)
-- Withdrawal request workflow (admin approval)
-- Admin monitoring page
+- Firebase Email/Password authentication
+- Protected Admin Panel
+- Admin authorization using `admins/{uid}`
+- Firestore rules that prevent players from changing their own points
+- Waiting queue + two-player match creation
+- 30-second skill game
+- Live scores
+- Tournament collection for admin-managed tournament records
+- Vercel static deployment support
+
+## IMPORTANT
+The original ZIP contained deposit/withdrawal and balance/prize flows. Those are intentionally not included in this ready package. Do not use client-side Firestore writes as authority for real-money balances, deposits, withdrawals, entry fees, or prize payouts.
 
 ## Firebase setup
-1. Create a Firebase project and Web App.
-2. Enable Authentication > Email/Password.
-3. Create Cloud Firestore.
-4. Put the Web App config in both `app.js` and `admin.js`.
-5. Deploy the rules in `firestore.rules`.
-6. Deploy the folder to Vercel as a static site.
+1. Firebase Console → Authentication → enable Email/Password.
+2. Firebase Console → Firestore Database → create database.
+3. Deploy `firestore.rules`.
+4. Create your admin user under Authentication.
+5. Copy that user's UID.
+6. Firestore → create collection `admins`.
+7. Create a document whose ID is exactly the admin UID. It can contain:
+   `{ "role": "admin", "createdAt": <timestamp> }`
+8. Keep the Firebase web config in `app.js` and `admin.js` matched to your project.
+9. Upload the `firebase-matchmaking` folder to Vercel.
 
-## Admin security
-The demo admin page uses the same Firebase login only to keep the example simple. For production, DO NOT rely on the page being hidden. Create an `admins/{uid}` record or Firebase custom admin claims and enforce admin-only reads/writes in Firestore rules / Cloud Functions.
+## Admin URL
+After Vercel deployment:
+`https://YOUR-DOMAIN/admin.html`
 
-## Real-money note
-The deposit/withdraw module here is an admin-approved request ledger, not an automated payment gateway. It records transaction references and lets an authorized backend/admin approve or reject them. Do not treat client-side wallet values as authoritative for real-money use. For a live money product, wallet debits/credits, tournament entry locks, prize settlement, refunds, and score validation must be server-authoritative (e.g. Cloud Functions/Admin SDK), with proper payment-provider verification, fraud controls, age/KYC requirements where applicable, and legal review in the operating jurisdiction.
-
-Firebase Authentication and Firestore are designed to work together for authenticated access and realtime data; use Security Rules and App Check for production hardening.
+## Recommended production hardening
+- Enable Firebase App Check.
+- Keep admin accounts separate from normal player accounts.
+- Use a server-side backend/Cloud Functions for any future authoritative game result or non-cash rewards.
+- Add audit logs for administrative actions.
